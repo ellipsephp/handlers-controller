@@ -1,6 +1,6 @@
 # Request handler controller
 
-[Psr-15](https://www.php-fig.org/psr/psr-15/) request handler proxying a class method using a [Psr-11](https://www.php-fig.org/psr/psr-11/) container.
+This package provides a [Psr-15](https://www.php-fig.org/psr/psr-15/) request handler proxying a class method using a [Psr-11](https://www.php-fig.org/psr/psr-11/) container.
 
 **Require** php >= 7.0
 
@@ -8,10 +8,10 @@
 
 **Run tests** `./vendor/bin/kahlan`
 
-- [Using controller definitions as request handlers](#using-controller-definitions-as-request-handlers)
+- [Using controllers as request handlers](#using-controllers-as-request-handlers)
 - [Example using auto wiring](#example-using-auto-wiring)
 
-## Using controller definitions as request handlers
+## Using controllers as request handlers
 
 The class `Ellipse\Handlers\ControllerRequestHandler` takes an implementation of `Psr\Container\ContainerInterface`, a class name, a method name and an optional array of request attribute names as parameters. Its `->handle()` method retrieve an instance of the class from the container and call its method with the given name in order to return a response.
 
@@ -81,26 +81,28 @@ $container->set(SomeOtherService::class, function ($container) {
 
 });
 
-// Those request handlers are using the Psr-11 container and controller definitions.
-$handler1 = new ControllerRequestHandler($container, [SomeController::class, '@index']);
-$handler2 = new ControllerRequestHandler($container, [SomeController::class, '@show', 'some_id']);
-$handler3 = new ControllerRequestHandler($container, [SomeController::class, '@store']);
+// Those request handlers are using the Psr-11 container, controller class names, methods and attributes.
+$handler1 = new ControllerRequestHandler($container, SomeController::class, 'index');
+$handler2 = new ControllerRequestHandler($container, SomeController::class, 'show', ['some_id']);
+$handler3 = new ControllerRequestHandler($container, SomeController::class, 'store');
 
 // The request handler ->handle() method proxy SomeController index method.
+// The contained instance of SomeOtherService is passed to the method.
 $response = $handler1->handle($request);
 
 // Here the request handler ->handle() method proxy SomeController show method.
-// The show method $some_id parameter will receive the request 'some_id' attribute value.
-$response = handler2->handle($request);
+// The contained instance of SomeOtherService is passed to the method.
+// The $some_id parameter will receive the request 'some_id' attribute value.
+$response = $handler2->handle($request);
 
 // Here the request handler ->handle() method proxy SomeController store method.
-// The store method $request parameter will receive the actual Psr-7 request received by the request handler.
-$response = handler3->handle($request);
+// The $request parameter will receive the actual Psr-7 request received by the request handler.
+$response = $handler3->handle($request);
 ```
 
 ## Example using auto wiring
 
-It can be cumbersome to register every controllers in the container. Here is how to auto wire controller classes using the `Ellipse\Container\ReflectionContainer` class from the [ellipse/container-reflection](https://github.com/ellipsephp/container-reflection) package.
+It can be cumbersome to register every controller classes in the container. Here is how to auto wire controller classes using the `Ellipse\Container\ReflectionContainer` class from the [ellipse/container-reflection](https://github.com/ellipsephp/container-reflection) package.
 
 ```php
 <?php
@@ -117,25 +119,12 @@ use App\Controllers\SomeController;
 // Get some Psr-11 container.
 $container = new SomePsr11Container;
 
-// Register some services in the container.
-$container->set(SomeService::class, function ($container) {
-
-    return new SomeService;
-
-});
-
-$container->set(SomeOtherService::class, function ($container) {
-
-    return new SomeOtherService;
-
-});
-
 // Decorate the container with a reflection container.
 $container = new ReflectionContainer($container);
 
-// The request handlers are using the reflection container and controller definitions.
-$handler = new ControllerRequestHandler($container, [SomeController::class, '@index']);
+// The request handlers are using the reflection container.
+$handler = new ControllerRequestHandler($container, SomeController::class, 'index');
 
-// A new instance of SomeController is built by injecting the defined instance of SomeService.
+// An instance of SomeController is built.
 $response = $handler->handle($request);
 ```
