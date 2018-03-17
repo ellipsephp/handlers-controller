@@ -13,11 +13,13 @@ This package provides a [Psr-15](https://www.php-fig.org/psr/psr-15/) request ha
 
 ## Using controllers as request handlers
 
-The class `Ellipse\Handlers\ControllerRequestHandler` takes an implementation of `Psr\Container\ContainerInterface`, a class name, a method name and an optional array of request attribute names as parameters. Its `->handle()` method retrieve an instance of the class from the container and call its method with the given name in order to return a response.
+The class `Ellipse\Handlers\ControllerRequestHandler` takes an implementation of `Psr\Container\ContainerInterface`, a container id, a method name and an optional array of request attribute names as parameters. Its `->handle()` method retrieve an instance of the controller class from the container and call its method with the given name in order to return a response.
 
 The controller method is executed by using the container to retrieve values for its type hinted parameters. Request attribute values matching the given request attribute names are used for the non-type hinted parameters, in the order they are listed.
 
 Also when the controller method has a parameter type hinted as `Psr\Http\Message\ServerRequestInterface`, the actual Psr-7 request received by the request handler is used. It means when a middleware create a new request (since Psr-7 requests are immutable) the controller method receive this new request.
+
+An `Ellipse\Handlers\Exceptions\ContainedControllerTypeException` is thrown when the controller retrieved from the container is not an object.
 
 ```php
 <?php

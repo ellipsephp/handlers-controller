@@ -11,6 +11,7 @@ use Psr\Http\Server\RequestHandlerInterface;
 use Ellipse\Container\ReflectionContainer;
 use Ellipse\Container\OverriddenContainer;
 use Ellipse\Resolvable\DefaultResolvableCallableFactory;
+use Ellipse\Handlers\Exceptions\ContainedControllerTypeException;
 
 class ControllerRequestHandler implements RequestHandlerInterface
 {
@@ -29,11 +30,11 @@ class ControllerRequestHandler implements RequestHandlerInterface
     private $factory;
 
     /**
-     * The controller class name.
+     * The container id to use to retrieve the controller.
      *
      * @var string
      */
-    private $class;
+    private $controller;
 
     /**
      * The controller method.
@@ -50,30 +51,31 @@ class ControllerRequestHandler implements RequestHandlerInterface
     private $attributes;
 
     /**
-     * Set up a controller request handler with the given container, class name,
-     * method and attributes.
+     * Set up a controller request handler with the given container, container
+     * id, method and attributes.
      *
      * @param \Psr\Container\ContainerInterface $factory
-     * @param string                            $class
+     * @param string                            $controller
      * @param string                            $method
      * @param array                             $attributes
      */
-    public function __construct(ContainerInterface $container, string $class, string $method, array $attributes = [])
+    public function __construct(ContainerInterface $container, string $controller, string $method, array $attributes = [])
     {
         $this->container = $container;
         $this->factory = new DefaultResolvableCallableFactory;
-        $this->class = $class;
+        $this->controller = $controller;
         $this->method = $method;
         $this->attributes = $attributes;
     }
 
     /**
      * Return a response from the controller method. Use a controller container
-     * using the given request to get the controller class and execute the
-     * controller method using the resolvable callable factory.
+     * using the given request to get the controller and execute the controller
+     * method using the resolvable callable factory.
      *
      * @param \Psr\Http\Message\ServerRequestInterface  $request
      * @return \Psr\Http\Message\ResponseInterface
+     * @throws \Ellipse\Handlers\Exceptions\ContainedControllerTypeException
      */
     public function handle(ServerRequestInterface $request): ResponseInterface
     {
@@ -81,10 +83,16 @@ class ControllerRequestHandler implements RequestHandlerInterface
 
         $placeholders = array_map([$request, 'getAttribute'], $this->attributes);
 
-        $controller = $container->get($this->class);
+        $controller = $container->get($this->controller);
 
-        $action = [$controller, $this->method];
+        if (is_object($controller)) {
 
-        return ($this->factory)($action)->value($container, $placeholders);
+            $action = [$controller, $this->method];
+
+            return ($this->factory)($action)->value($container, $placeholders);
+
+        }
+
+        throw new ContainedControllerTypeException($this->controller, $controller);
     }
 }
