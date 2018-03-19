@@ -27,7 +27,8 @@
         "psr/http-server-middleware": "^1.0",
         "psr/container": "^1.0",
         "ellipse/container-overridden": "^1.0",
-        "ellipse/resolvable-callable": "^1.0"
+        "ellipse/resolvable-callable": "^1.0",
+        "ellipse/type-errors": "^1.0"
     },
     "require-dev": {
         "kahlan/kahlan": "^4.0",
