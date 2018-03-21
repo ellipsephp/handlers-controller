@@ -109,6 +109,19 @@ It can be cumbersome to register every controller classes in the container. Here
 ```php
 <?php
 
+// Let controller classes implement some dummy interface specific to the application.
+
+namespace App\Controllers;
+
+class SomeController implements ControllerInterface
+{
+    // ...
+}
+```
+
+```php
+<?php
+
 namespace App;
 
 use SomePsr11Container;
@@ -116,17 +129,21 @@ use SomePsr11Container;
 use Ellipse\Container\ReflectionContainer;
 use Ellipse\Handlers\ControllerRequestHandler;
 
+use App\Controllers\ControllerInterface;
 use App\Controllers\SomeController;
 
 // Get some Psr-11 container.
 $container = new SomePsr11Container;
 
 // Decorate the container with a reflection container.
-$container = new ReflectionContainer($container);
+// Specify the classes implementing ControllerInterface can be auto wired.
+$reflection = new ReflectionContainer($container, [
+    ControllerInterface::class,
+]);
 
-// The request handlers are using the reflection container.
-$handler = new ControllerRequestHandler($container, SomeController::class, 'index');
+// Create a controller request handler using the reflection container.
+$handler = new ControllerRequestHandler($reflection, SomeController::class, 'index');
 
-// An instance of SomeController is built.
+// An instance of SomeController is built using auto wiring.
 $response = $handler->handle($request);
 ```
