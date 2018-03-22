@@ -104,7 +104,7 @@ $response = $handler3->handle($request);
 
 ## Example using auto wiring
 
-It can be cumbersome to register every controller classes in the container. Here is how to auto wire controller classes using the `Ellipse\Container\ReflectionContainer` class from the [ellipse/container-reflection](https://github.com/ellipsephp/container-reflection) package.
+It can be cumbersome to register every controller classes in the container. Here is how to auto wire controller instances using the `Ellipse\Container\ReflectionContainer` class from the [ellipse/container-reflection](https://github.com/ellipsephp/container-reflection) package.
 
 ```php
 <?php
@@ -141,7 +141,7 @@ $reflection = new ReflectionContainer($container, [
     ControllerInterface::class,
 ]);
 
-// Create a controller request handler using the reflection container.
+// Create a controller request handler using the reflection container and a controller class name.
 $handler = new ControllerRequestHandler($reflection, SomeController::class, 'index');
 
 // An instance of SomeController is built using auto wiring.
